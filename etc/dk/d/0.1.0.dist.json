@@ -1,0 +1,32 @@
+{
+  "continuations": {
+    "attestation": {
+      "openbsd_signify": {
+        "signature": "untrusted comment: signed by key 1725fdff6f28d8bb\nRWQXJf3/byjYu4Vy98V/fxuW6TdOczzAiskuLlWXOrdEKVoNDyx7i+z+qr8G7U5jFPVyi5vywDcW8iZJrDfUSrKvYpvKMj1JhAo=\n"
+      }
+    },
+    "continuations_to_sign": {
+      "0.2": {
+        "application": { "name": "dk0", "version": "2.4.2+rev-309" },
+        "openbsd_signify": {
+          "public_key": "untrusted comment: CommonsLang_Python-0.2\nRWQJygn9GLkWow8vFnVNsw0wmGl36Ks1U+4WjBkySMCnaLBSe0Cckp9E\n"
+        }
+      },
+      "1.0": {
+        "application": { "name": "dk0", "version": "2.4.2+rev-309" },
+        "openbsd_signify": {
+          "public_key": "untrusted comment: CommonsLang_Python-1.0\nRWTdUcrS9Vkj+jFINuyNqck9FopxCHNz6H++mIWewtCegv9BDk6G1tc7\n"
+        }
+      }
+    }
+  },
+  "id": "CommonsLang_Python@0.1.0",
+  "license": { "spdx": "Apache-2.0" },
+  "producer": {
+    "application": { "name": "dk0", "version": "2.4.2+rev-309" },
+    "github_slsa_v1_l2": { "repository": "dkpkg/CommonsLang_Python" },
+    "openbsd_signify": {
+      "public_key": "untrusted comment: CommonsLang_Python-0.1\nRWQXJf3/byjYuzC6AHnIC9o6PbEWKabj7EZI9Fd7nTtQxLuT8aK6eauu\n"
+    }
+  }
+}
