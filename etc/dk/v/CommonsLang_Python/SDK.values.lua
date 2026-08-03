@@ -53,12 +53,18 @@ function rules.Export(command, request)
   if command == "declareoutput" then
     return { declareoutput = { return_objects = {
       id = string.format("%s.Export@%s", CommonsLang_Python_SDK.id_module, CommonsLang_Python_SDK.id_version),
-      slots = { "Release.Agnostic" }, execution_slot = "Release.Agnostic" } } }
+      slots = CommonsLang_Python_SDK.supported_slots(), execution_slot = "Release.execution_abi" } } }
   elseif command == "submit" then
+    -- Empty marker file, created with a hermetic coreutils `touch` (dk0 has no
+    -- system `touch`). Running this ships the whole SDK scriptmodule (uirules.Python).
     return { submit = { values = { schema_version = { major = 1, minor = 0 },
       forms = { { id = request.submit.outputid,
-        precommands = { private = { "touch ${SLOT.Release.Agnostic}/sdk-scriptmodule" } },
-        outputs = { assets = { { slots = { "Release.Agnostic" }, paths = { "sdk-scriptmodule" } } } } } } } } }
+        function_ = { commands = {
+          "$(get-object CommonsBase_Std.Coreutils@0.6.0 -s ${SLOTNAME.Release.execution_abi} -m ./coreutils.exe -f coreutils.exe -e '*')",
+          "touch",
+          "${SLOT.request}/sdk-scriptmodule"
+        } },
+        outputs = { assets = { { slots = CommonsLang_Python_SDK.supported_slots(), paths = { "sdk-scriptmodule" } } } } } } } } }
   end
 end
 

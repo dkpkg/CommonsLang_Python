@@ -25,12 +25,17 @@ function rules.Export(command, request)
   if command == "declareoutput" then
     return { declareoutput = { return_objects = {
       id = string.format("%s.Export@%s", CommonsLang_Python_UvBuild.id_module, CommonsLang_Python_UvBuild.id_version),
-      slots = { "Release.Agnostic" }, execution_slot = "Release.Agnostic" } } }
+      slots = CommonsLang_Python_UvBuild.SLOTS, execution_slot = "Release.execution_abi" } } }
   elseif command == "submit" then
+    -- Empty marker via hermetic coreutils `touch`; ships the UvBuild scriptmodule (F_BuildLockedPackage).
     return { submit = { values = { schema_version = { major = 1, minor = 0 }, forms = { {
       id = request.submit.outputid,
-      precommands = { private = { "touch ${SLOT.Release.Agnostic}/uvbuild-scriptmodule" } },
-      outputs = { assets = { { slots = { "Release.Agnostic" }, paths = { "uvbuild-scriptmodule" } } } } } } } } }
+      function_ = { commands = {
+        "$(get-object CommonsBase_Std.Coreutils@0.6.0 -s ${SLOTNAME.Release.execution_abi} -m ./coreutils.exe -f coreutils.exe -e '*')",
+        "touch",
+        "${SLOT.request}/uvbuild-scriptmodule"
+      } },
+      outputs = { assets = { { slots = CommonsLang_Python_UvBuild.SLOTS, paths = { "uvbuild-scriptmodule" } } } } } } } } }
   end
 end
 

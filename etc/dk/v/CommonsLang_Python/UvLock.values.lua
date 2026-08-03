@@ -18,15 +18,23 @@ rules, uirules = build.newrules(M)
 -- Export marker: running any rule of a scriptmodule brings the whole module
 -- (including uirules.Solve) into a distribution. dist/<ABI>.u runs this.
 function rules.Export(command, request)
+  local slots = {
+    "Release.Windows_x86_64", "Release.Linux_x86_64", "Release.Darwin_x86_64", "Release.Darwin_arm64"
+  }
   if command == "declareoutput" then
     return { declareoutput = { return_objects = {
       id = string.format("%s.Export@%s", CommonsLang_Python_UvLock.id_module, CommonsLang_Python_UvLock.id_version),
-      slots = { "Release.Agnostic" }, execution_slot = "Release.Agnostic" } } }
+      slots = slots, execution_slot = "Release.execution_abi" } } }
   elseif command == "submit" then
+    -- Empty marker via hermetic coreutils `touch`; ships the UvLock scriptmodule (uirules.Solve).
     return { submit = { values = { schema_version = { major = 1, minor = 0 }, forms = { {
       id = request.submit.outputid,
-      precommands = { private = { "touch ${SLOT.Release.Agnostic}/uvlock-scriptmodule" } },
-      outputs = { assets = { { slots = { "Release.Agnostic" }, paths = { "uvlock-scriptmodule" } } } } } } } } }
+      function_ = { commands = {
+        "$(get-object CommonsBase_Std.Coreutils@0.6.0 -s ${SLOTNAME.Release.execution_abi} -m ./coreutils.exe -f coreutils.exe -e '*')",
+        "touch",
+        "${SLOT.request}/uvlock-scriptmodule"
+      } },
+      outputs = { assets = { { slots = slots, paths = { "uvlock-scriptmodule" } } } } } } } } }
   end
 end
 
