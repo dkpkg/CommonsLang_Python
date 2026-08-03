@@ -75,3 +75,5 @@ function uirules.Solve(command, request, continue_)
     envmods = { "<PATH=" .. uvdir, "+UV_NO_CONFIG=1", "-VIRTUAL_ENV", "-UV_PYTHON" }
   })
 end
+
+return M

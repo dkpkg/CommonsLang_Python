@@ -111,3 +111,5 @@ function uirules.Uv(command, request, continue_)
     assert(request.ui.spawn { program = program, envmods = CommonsLang_Python_Uv.envmods(), args = request.user.args })
   end
 end
+
+return M

@@ -100,3 +100,5 @@ function uirules.Python(command, request, continue_)
       args = request.user.args })
   end
 end
+
+return M

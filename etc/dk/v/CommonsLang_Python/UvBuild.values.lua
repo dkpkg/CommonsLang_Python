@@ -113,3 +113,5 @@ function rules.F_BuildLockedPackage(command, request, continue_)
     } }
   end
 end
+
+return M
