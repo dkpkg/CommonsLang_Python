@@ -1,0 +1,60 @@
+// uv (Python package/project manager + Python installer), from astral-sh/uv.
+//
+// Source: https://github.com/astral-sh/uv/releases/tag/0.12.1
+// SHA-256 + size are the GitHub release-asset digests.
+//
+// Test: ./dk0 -I etc/dk/v --trust-local-package CommonsLang_Python --autofix \
+//         get-bundle CommonsLang_Python.Uv.Bundle@0.12.1 -d target/uvbundle
+{
+  "$schema": "https://diskuv.com/dk/schema/dk-value-1.0.json",
+  "schema_version": { "major": 1, "minor": 0 },
+  "bundles": [
+    {
+      "id": "CommonsLang_Python.Uv.Bundle@0.12.1",
+      "listing": {
+        "origins": [
+          {
+            "name": "github-astral-uv",
+            "mirrors": [
+              "https://github.com/astral-sh/uv/releases/download/0.12.1"
+            ]
+          }
+        ]
+      },
+      "assets": [
+        {
+          "path": "uv-x86_64-pc-windows-msvc.zip",
+          "checksum": {
+            "sha256": "8fcb0cb46e1229065e344758980924e569bef5882ef45f46fada8fb24e06b74a"
+          },
+          "size": 19073343,
+          "origin": "github-astral-uv"
+        },
+        {
+          "path": "uv-x86_64-unknown-linux-gnu.tar.gz",
+          "checksum": {
+            "sha256": "90b2f223fb69d19db49e117da601f64978593417988530aa733d456141b4bcbb"
+          },
+          "size": 21760555,
+          "origin": "github-astral-uv"
+        },
+        {
+          "path": "uv-x86_64-apple-darwin.tar.gz",
+          "checksum": {
+            "sha256": "69d9f9a00337f25a50dcb13882052da08b8469bac11091c98c5694c3c6721467"
+          },
+          "size": 19622543,
+          "origin": "github-astral-uv"
+        },
+        {
+          "path": "uv-aarch64-apple-darwin.tar.gz",
+          "checksum": {
+            "sha256": "77d2906988e8074fd43f2f329ec452ebbf9b0c257ba1c66451c71de70a6baf42"
+          },
+          "size": 17679560,
+          "origin": "github-astral-uv"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+# Written by dk0. The values.json copies and the imports.json ledger are
+# machine-written verification records for THIS workspace; do not commit.
+# capabilities.json (explicit human authorization grants) is committable.
+*.values.json
+imports.json

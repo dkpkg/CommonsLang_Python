@@ -1,0 +1,65 @@
+// CPython relocatable runtime, from astral-sh/python-build-standalone.
+//
+// Source: https://github.com/astral-sh/python-build-standalone/releases/tag/20260728
+// The `install_only` variant is the relocatable runtime layout (a `python/`
+// tree). SHA-256 + size are the GitHub release-asset digests (gh api
+//   repos/astral-sh/python-build-standalone/releases/latest --jq '.assets[].digest').
+//
+// CPython 3.13.14. Supported ABIs = the intersection uv and CPython both ship:
+// Windows_x86_64, Linux_x86_64, Darwin_x86_64, Darwin_arm64.
+//
+// Test: ./dk0 -I etc/dk/v --trust-local-package CommonsLang_Python --autofix \
+//         get-bundle CommonsLang_Python.SDK.Bundle@3.13.14 -d target/cpythonbundle
+{
+  "$schema": "https://diskuv.com/dk/schema/dk-value-1.0.json",
+  "schema_version": { "major": 1, "minor": 0 },
+  "bundles": [
+    {
+      "id": "CommonsLang_Python.SDK.Bundle@3.13.14",
+      "listing": {
+        "origins": [
+          {
+            "name": "github-astral-python-build-standalone",
+            "mirrors": [
+              "https://github.com/astral-sh/python-build-standalone/releases/download/20260728"
+            ]
+          }
+        ]
+      },
+      "assets": [
+        {
+          "path": "cpython-3.13.14+20260728-x86_64-pc-windows-msvc-install_only.tar.gz",
+          "checksum": {
+            "sha256": "7f98babaa75283ad8f70326eb27a7dea770a9e0b459a752dd64c793897a22330"
+          },
+          "size": 47026618,
+          "origin": "github-astral-python-build-standalone"
+        },
+        {
+          "path": "cpython-3.13.14+20260728-x86_64-unknown-linux-gnu-install_only.tar.gz",
+          "checksum": {
+            "sha256": "ad6966bfa717f2da83c55eb9e0412bca4039f5501f2c7b42b43079a6052321fd"
+          },
+          "size": 118178436,
+          "origin": "github-astral-python-build-standalone"
+        },
+        {
+          "path": "cpython-3.13.14+20260728-x86_64-apple-darwin-install_only.tar.gz",
+          "checksum": {
+            "sha256": "1cae8109be20b827cf39abe76f0ef6fdb5cfc621ab1791beda77abf8ea7bb75e"
+          },
+          "size": 25020800,
+          "origin": "github-astral-python-build-standalone"
+        },
+        {
+          "path": "cpython-3.13.14+20260728-aarch64-apple-darwin-install_only.tar.gz",
+          "checksum": {
+            "sha256": "a48399e6ddbb9ccf215eb5afea8f40eca289c808f99faa5d38f35f575a6f1784"
+          },
+          "size": 25272160,
+          "origin": "github-astral-python-build-standalone"
+        }
+      ]
+    }
+  ]
+}
