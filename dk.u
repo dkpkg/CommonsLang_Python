@@ -32,3 +32,10 @@ Python-2.0 AND (Apache-2.0 OR MIT)
     checksum: (blake2b-256: "e15c926d858a3df2203d0590c8497dc976506e6284f1e8b1c4df252315d4a1c1",
       sha256: "995e15f8b408833528b53a756110b7bf22fdecab573ff38ddd04a1ff98312c5f",
       sha1: "eb722e05d92956c3cf30fe69cd4ab80f76ef2521"))\;
+
+## Assets
+
+### CommonsLang_Python.Apparatus@1.0.0
+
+  % unified.asset { name="UvLockGenerator", file="assets/uv-lock/dk_uv_lock.py" }
+  \dk.asset(byteSize: "5362", checksum: (sha256: "91c2f2f8594c3282ef581f34e4b81503f27477a8f72e26da53e5d86ce0230461"))\;

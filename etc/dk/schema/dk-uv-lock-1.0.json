@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://diskuv.com/dk/schema/dk-uv-lock-1.0.json",
+  "title": "dk uv lock (1.0)",
+  "description": "A reproducible, slot-aware lock of a solved PyPI dependency closure. Generated at author time by CommonsLang_Python.UvLock (from `uv lock`) and consumed at build time by CommonsLang_Python.UvBuild. The build only READS this file: it fetches each package's pinned artifact by URL, verifies the hash, and never solves or queries an index.",
+  "type": "object",
+  "required": ["$schema", "schema_version", "packages", "slots"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "$ref": "#/$defs/schema_version" },
+    "generated": {
+      "description": "Provenance; never read by the build.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "tool": { "type": "string" },
+        "uv_version": { "type": "string" },
+        "python_version": { "type": "string" }
+      }
+    },
+    "indexes": {
+      "description": "The package index URLs uv resolved against (informational).",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "packages": {
+      "description": "Catalog of every resolved package, keyed \"<name>.<version>\".",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/package" }
+    },
+    "slots": {
+      "description": "Per dk slot (e.g. Release.Windows_x86_64): the closure for that slot and the exact artifact chosen per package.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/slot_solution" }
+    }
+  },
+  "$defs": {
+    "schema_version": {
+      "type": "object",
+      "required": ["major", "minor"],
+      "additionalProperties": false,
+      "properties": {
+        "major": { "type": "integer", "const": 1 },
+        "minor": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "artifact": {
+      "description": "A wheel or sdist: the exact URL + hash used for an offline, verified fetch.",
+      "type": "object",
+      "required": ["url", "hash", "size"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string" },
+        "hash": { "type": "string", "description": "\"<algo>:<hex>\", normally sha256." },
+        "size": { "type": "integer", "minimum": 0 },
+        "filename": { "type": "string" },
+        "kind": { "type": "string", "enum": ["wheel", "sdist"] }
+      }
+    },
+    "package": {
+      "type": "object",
+      "required": ["name", "version", "depends"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "depends": {
+          "description": "Runtime dependency package names in the closure (informational for wheels; used for ordering only if an sdist ever needs a build backend).",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sdist": { "oneOf": [ { "$ref": "#/$defs/artifact" }, { "type": "null" } ] },
+        "wheels": {
+          "description": "All platform wheels uv recorded for this package; slots pick one.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/artifact" }
+        }
+      }
+    },
+    "slot_solution": {
+      "type": "object",
+      "required": ["solution", "artifacts"],
+      "additionalProperties": false,
+      "properties": {
+        "python": { "type": "string", "description": "The CPython X.Y this slot resolved for." },
+        "solution": {
+          "description": "The \"<name>.<version>\" keys forming this slot's closure.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "artifacts": {
+          "description": "For each \"<name>.<version>\" in the solution, the exact artifact chosen for this slot (the platform-matched wheel, or the sdist as a fallback).",
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/artifact" }
+        }
+      }
+    }
+  }
+}

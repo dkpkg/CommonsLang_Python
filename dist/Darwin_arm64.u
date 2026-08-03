@@ -17,3 +17,13 @@
 
 <!-- The `\dk.object(abi:..., value-id:...)` lines are recorded by dk0 at the
      first distribute build. -->
+
+## UvLock (author-time lock generator scriptmodule)
+
+  $ run-function CommonsLang_Python.UvLock.Export@1.0.0 -f ${RUNTIME}/UvLock.Export.zip
+  \test(pass)
+
+## UvBuild (build-time locked-package builder scriptmodule)
+
+  $ run-function CommonsLang_Python.UvBuild.Export@1.0.0 -f ${RUNTIME}/UvBuild.Export.zip
+  \test(pass)
