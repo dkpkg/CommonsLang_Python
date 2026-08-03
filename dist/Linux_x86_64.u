@@ -4,16 +4,19 @@
 
   $ run-function CommonsBase_Std.Extract.F_TarToZip@0.3.0 -f ${RUNTIME}/ignored.zip modver=CommonsLang_Python.SDK.Zip@3.13.14 tarmodver=CommonsLang_Python.SDK.Bundle@3.13.14 tarassetpath=cpython-3.13.14+20260728-x86_64-unknown-linux-gnu-install_only.tar.gz
   \test(pass)
+  \dk.object(abi: "Release.Linux_x86_64", value-id: "ozolaloti5yceys3izhu2jdsdu2hn2jdlg3f7u6wycmp3fduamcca")\;
 
 ## Python runner scriptmodule
 
   $ run-function CommonsLang_Python.SDK.Export@3.13.14 -f ${RUNTIME}/SDK.Export.zip
   \test(pass)
+  \dk.object(abi: "Release.Linux_x86_64", value-id: "onxon3qciaatynuccbo26yuria7iuhzrt5uulob3mppbiut7xafmq")\;
 
 ## uv
 
   $ run-function CommonsLang_Python.Uv.Files@0.12.1 -d ${RUNTIME}/uv slot=Release.Linux_x86_64
   \test(pass)
+  \dk.object(abi: "Release.Linux_x86_64", value-id: "om3tlusuyd4vq6qhrmyouqsfqsno2rg3vhvsqwz5knc5vkb4wfe5a")\;
 
 <!-- The `\dk.object(abi:..., value-id:...)` lines are recorded by dk0 at the
      first distribute build. -->
@@ -22,8 +25,10 @@
 
   $ run-function CommonsLang_Python.UvLock.Export@1.0.0 -f ${RUNTIME}/UvLock.Export.zip
   \test(pass)
+  \dk.object(abi: "Release.Linux_x86_64", value-id: "ozvoinoax3girjyu2jsjwycryua64iuiyz64oya2z2kmnqtgj42qa")\;
 
 ## UvBuild (build-time locked-package builder scriptmodule)
 
   $ run-function CommonsLang_Python.UvBuild.Export@1.0.0 -f ${RUNTIME}/UvBuild.Export.zip
   \test(pass)
+  \dk.object(abi: "Release.Linux_x86_64", value-id: "o5qtqvespaw5knb7a3lyswn7d54r37tmwmjeszfb63dg5gh6f5ecq")\;
