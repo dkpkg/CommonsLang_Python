@@ -1,0 +1,19 @@
+# Distribution for CommonsLang_Python (Windows_x86_64)
+
+## CPython runtime (whole tree captured as SDK.Zip)
+
+  $ run-function CommonsBase_Std.Extract.F_TarToZip@0.3.0 -f ${RUNTIME}/ignored.zip modver=CommonsLang_Python.SDK.Zip@3.13.14 tarmodver=CommonsLang_Python.SDK.Bundle@3.13.14 tarassetpath=cpython-3.13.14+20260728-x86_64-pc-windows-msvc-install_only.tar.gz
+  \test(pass)
+
+## Python runner scriptmodule
+
+  $ run-function CommonsLang_Python.SDK.Export@3.13.14 -f ${RUNTIME}/SDK.Export.zip
+  \test(pass)
+
+## uv
+
+  $ run-function CommonsLang_Python.Uv.Files@0.12.1 -d ${RUNTIME}/uv slot=Release.Windows_x86_64
+  \test(pass)
+
+<!-- The `\dk.object(abi:..., value-id:...)` lines are recorded by dk0 at the
+     first distribute build. -->

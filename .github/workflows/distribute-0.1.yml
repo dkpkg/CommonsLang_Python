@@ -1,0 +1,76 @@
+on:
+  push:
+    tags:
+      - '0.1.*'
+  workflow_dispatch:
+
+jobs:
+  distribute:
+    environment: dk-distribution
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs-on: ubuntu-latest
+            distscript: dist/Linux_x86_64.u
+            image: quay.io/pypa/manylinux_2_28_x86_64:2026.04.08-5
+            target-abi: Linux_x86_64
+          - runs-on: macos-latest
+            distscript: dist/Darwin_arm64.u
+            execution-abi: Darwin_arm64
+            target-abi: Darwin_arm64
+          - runs-on: macos-latest
+            distscript: dist/Darwin_x86_64.u
+            execution-abi: Darwin_arm64
+            target-abi: Darwin_x86_64
+          - runs-on: windows-latest
+            distscript: dist/Windows_x86_64.u
+            target-abi: Windows_x86_64
+
+    runs-on: ${{ matrix.runs-on }}
+    container:
+      image: ${{ matrix.image }}
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176
+        with: { egress-policy: audit }
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Distribute Modules
+        uses: diskuv/dk-distribute@v3
+        with:
+          pubkey: ${{ secrets.distribute_0_1_pubkey }}
+          seckey: ${{ secrets.distribute_0_1_seckey }}
+          options: -nosysinc
+          store: release
+          distscript: ${{ matrix.distscript }}
+          execution-abi: ${{ matrix.execution-abi }}
+          target-abi: ${{ matrix.target-abi }}
+          experimental-mlfront-ref: ${{ github.ref_type != 'tag' && 'HEAD' }}
+
+  combine:
+    needs: distribute
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176
+        with: { egress-policy: audit }
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Combine Modules
+        uses: diskuv/dk-distribute/combine@v3
+
+      # Attests the distribution, publishes the sigstore bundle for values.json
+      # as a release asset, and creates the release.
+      - name: Attest and Release
+        uses: diskuv/dk-distribute/attest-release@v3
