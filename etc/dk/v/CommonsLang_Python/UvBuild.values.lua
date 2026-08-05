@@ -93,10 +93,11 @@ function rules.F_BuildLockedPackage(command, request, continue_)
     -- (Mirrors OpamBuild's synthesized .Src bundle.) The wheel filename is the
     -- basename of the URL.
     local url = art.url
-    local basename = string.gsub(url, "^.*/", "")
-    local origin_base = string.gsub(url, "/[^/]*$", "")
+    local basename = CommonsLang_Python_UvBuild.basename_url(url)
+    local origin_base = CommonsLang_Python_UvBuild.dirname_url(url)
     local bundle_id = modver .. ".Whl"
-    local sha256 = string.gsub(art.hash, "^sha256:", "")
+    local sha256 = art.hash
+    if string.sub(sha256, 1, 7) == "sha256:" then sha256 = string.sub(sha256, 8) end
     return { submit = {
       values = {
         schema_version = { major = 1, minor = 0 },
@@ -117,6 +118,126 @@ function rules.F_BuildLockedPackage(command, request, continue_)
       }
     } }
   end
+end
+
+-- Global helpers (lua-ml has neither string.gsub nor local functions).
+function CommonsLang_Python_UvBuild.dirname_url(url)
+  local i = string.len(url)
+  while i > 0 do
+    if string.sub(url, i, i) == "/" then return string.sub(url, 1, i - 1) end
+    i = i - 1
+  end
+  return url
+end
+function CommonsLang_Python_UvBuild.basename_url(url)
+  local i = string.len(url)
+  while i > 0 do
+    if string.sub(url, i, i) == "/" then return string.sub(url, i + 1) end
+    i = i - 1
+  end
+  return url
+end
+function CommonsLang_Python_UvBuild.uv_exe(uvdir, slot)
+  if string.find(slot, "Windows_") ~= nil then return uvdir .. "/uv.exe" end
+  if slot == "Release.Linux_x86_64" then return uvdir .. "/uv-x86_64-unknown-linux-gnu/uv" end
+  if slot == "Release.Darwin_x86_64" then return uvdir .. "/uv-x86_64-apple-darwin/uv" end
+  if slot == "Release.Darwin_arm64" then return uvdir .. "/uv-aarch64-apple-darwin/uv" end
+  error("unsupported uv slot: " .. slot)
+end
+
+-- `dk0 dialog CommonsLang_Python.UvBuild.Build@1.0.0 lock=dk.uv-lock.jsonc import[]=six`
+--
+-- Hermetic offline build/validation. Reads the project lock, fetches each pinned
+-- wheel for the execution slot via dk get-asset (content-addressed; no PyPI at
+-- build time), then captures the install helper, which `uv pip install
+-- --no-index --offline`s those exact wheels into a throwaway target and imports
+-- the requested modules to prove the assembled environment works. Same two-stage
+-- capture pattern as UvLock.Solve: stage 1 declares the wheel bundle + object
+-- expressions and continues; stage 2 (where program launches are permitted and
+-- continued objects must be closed) runs the installer via request.ui.capture.
+function uirules.Build(command, request, continue_)
+  if command == "ui" then return end
+  if command ~= "submit" then return end
+  local slot = "Release." .. assert(request.execution.ABIv3, "Expected request.execution.ABIv3")
+  local iswin = string.find(slot, "Windows_") ~= nil
+  if continue_ ~= "build" then
+    local lockpath = request.user.lock or "dk.uv-lock.jsonc"
+    local content = assert(request.ui.readfile { path = lockpath },
+      "could not read lock `" .. lockpath .. "`")
+    local jd = require("jsondk")
+    local lock = jd.decode(content)
+    assert(lock and lock.slots and lock.slots[slot], "lock has no solution for " .. slot)
+    local solution = lock.slots[slot].solution
+    local artifacts = lock.slots[slot].artifacts
+    -- Synthesize ONE bundle listing every pinned wheel in the slot's solution
+    -- (each wheel is its own origin: mirror = URL dir, asset path = filename),
+    -- plus a get-asset file expression per wheel (proven in the ZProbe).
+    local bundle_id = "CommonsLang_Python.UvBuild.Build.Wheelhouse@1.0.0"
+    local origins = {}
+    local assets = {}
+    local files = {
+      helper = "$(get-asset CommonsLang_Python.Apparatus.UvInstallHelper@1.0.0 -p assets/uv-build/dk_uv_install.py -f dk_uv_install.py)"
+    }
+    local i = 1
+    local key = solution[1]
+    while key do
+      local art = assert(artifacts[key], "no artifact for " .. tostring(key))
+      local base = CommonsLang_Python_UvBuild.basename_url(art.url)
+      local sha = art.hash
+      if string.sub(sha, 1, 7) == "sha256:" then sha = string.sub(sha, 8) end
+      local oname = string.format("o%d", i)
+      table.insert(origins, { name = oname, mirrors = { CommonsLang_Python_UvBuild.dirname_url(art.url) } })
+      table.insert(assets, { path = base, checksum = { sha256 = sha }, size = art.size, origin = oname })
+      files[string.format("wheel_%d", i)] = "$(get-asset " .. bundle_id .. " -p " .. base .. " -f " .. base .. ")"
+      i = i + 1
+      key = solution[i]
+    end
+    return { submit = {
+      values = { schema_version = { major = 1, minor = 0 }, bundles = { {
+        id = bundle_id, listing = { origins = origins }, assets = assets
+      } } },
+      expressions = {
+        directories = {
+          pythondir = "$(get-object CommonsLang_Python.SDK.Zip@3.13.14 -s Release.execution_abi -m ./output.zip -n 1 -d :)",
+          uvdir     = "$(get-object CommonsLang_Python.Uv.Form@0.12.1 -s Release.execution_abi -d :)"
+        },
+        files = files
+      },
+      andthen = { continue_ = { state = "build" } }
+    } }
+  end
+  local pythondir = request.io.realpath(request.continued.pythondir)
+  local uvdir = request.io.realpath(request.continued.uvdir)
+  local helper = request.io.realpath(request.continued.helper)
+  request.io.close(request.continued.pythondir)
+  request.io.close(request.continued.uvdir)
+  request.io.close(request.continued.helper)
+  local pyexe = pythondir .. (iswin and "/python.exe" or "/bin/python3")
+  local uvexe = CommonsLang_Python_UvBuild.uv_exe(uvdir, slot)
+  local args = { helper, "--uv", uvexe, "--python", pyexe }
+  -- Collect + close every fetched wheel object.
+  local i = 1
+  local wkey = "wheel_1"
+  while request.continued[wkey] do
+    table.insert(args, "--wheel")
+    table.insert(args, request.io.realpath(request.continued[wkey]))
+    request.io.close(request.continued[wkey])
+    i = i + 1
+    wkey = string.format("wheel_%d", i)
+  end
+  local imports = request.user["import"] or {}
+  local j = 1
+  local m = imports[1]
+  while m do table.insert(args, "--import"); table.insert(args, m); j = j + 1; m = imports[j] end
+  local result, msg, kind = request.ui.capture {
+    program = pyexe, args = args, max_output_bytes = 16777211,
+    envmods = { "+UV_NO_CONFIG=1", "-VIRTUAL_ENV", "-UV_PYTHON" }
+  }
+  assert(result, "could not run the uv installer: " .. tostring(kind) .. ": " .. tostring(msg))
+  assert(result.status == "exit" and result.code == 0,
+    "uv install/validate failed (code " .. tostring(result.code) .. "): " .. tostring(result.stderr))
+  print("uv-build OK: " .. tostring(result.stdout))
+  return { submit = {} }
 end
 
 return M

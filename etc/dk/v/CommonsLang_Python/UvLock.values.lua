@@ -38,23 +38,32 @@ function rules.Export(command, request)
   end
 end
 
+-- Absolute path to the uv executable inside a materialized Uv.Form dir. Windows
+-- keeps uv.exe at the root; the Unix uv release tarball nests it under uv-<target>/.
+function CommonsLang_Python_UvLock.uv_exe(uvdir, slot)
+  if string.find(slot, "Windows_") ~= nil then return uvdir .. "/uv.exe" end
+  if slot == "Release.Linux_x86_64" then return uvdir .. "/uv-x86_64-unknown-linux-gnu/uv" end
+  if slot == "Release.Darwin_x86_64" then return uvdir .. "/uv-x86_64-apple-darwin/uv" end
+  if slot == "Release.Darwin_arm64" then return uvdir .. "/uv-aarch64-apple-darwin/uv" end
+  error("unsupported uv slot: " .. slot)
+end
+
 -- `dk0 dialog CommonsLang_Python.UvLock.Solve@1.0.0 reqs[]=requests reqs[]=flask
 --    out=dk.uv-lock.jsonc python-version=3.13`
 --
--- Materializes CPython (python) + uv, then runs the generator to produce the
--- lock. Requirements come from `reqs[]=...`; the generator uses `uv lock` +
--- per-platform `uv export --format pylock.toml` internally.
+-- Materializes CPython + uv, runs the generator (which does `uv lock` +
+-- per-platform `uv export`), and writes the resulting lock into the project.
+-- Follows the OCaml Dk.OpamLock.Solve two-stage pattern: stage 1 declares the
+-- directory/file expressions and continues; stage 2 (in the continuation, where
+-- program launches are permitted and continued objects must be closed) runs the
+-- generator via request.ui.capture and publishes stdout with request.ui.writefile.
 function uirules.Solve(command, request, continue_)
-  if command == "ui" then
-    print("dk-uv-lock written.")
-    return
-  end
+  if command == "ui" then return end
   if command ~= "submit" then return end
   if continue_ ~= "solve" then
-    -- Stage 1: materialize the toolchain dirs + the generator asset.
     return { submit = { expressions = {
       directories = {
-        pythondir = "$(install-object CommonsLang_Python.SDK.Zip@3.13.14 -s Release.execution_abi -m ./output.zip -n 1 -d :)",
+        pythondir = "$(get-object CommonsLang_Python.SDK.Zip@3.13.14 -s Release.execution_abi -m ./output.zip -n 1 -d :)",
         uvdir     = "$(get-object CommonsLang_Python.Uv.Form@0.12.1 -s Release.execution_abi -d :)"
       },
       files = {
@@ -62,26 +71,37 @@ function uirules.Solve(command, request, continue_)
       }
     }, andthen = { continue_ = { state = "solve" } } } }
   end
-  -- Stage 2: run the generator with python + uv on PATH.
+  local slot = "Release." .. assert(request.execution.ABIv3, "Expected request.execution.ABIv3")
+  local iswin = string.find(slot, "Windows_") ~= nil
   local pythondir = request.io.realpath(request.continued.pythondir)
   local uvdir = request.io.realpath(request.continued.uvdir)
   local generator = request.io.realpath(request.continued.generator)
-  local pyexe = pythondir .. "/python" .. (request.execution.OSFamily == "windows" and ".exe" or "3")
-  local uvrel = (request.execution.OSFamily == "windows") and "uv.exe" or "uv"   -- Unix uv is under uv-<target>/; see Uv.uv_relpath
+  request.io.close(request.continued.pythondir)
+  request.io.close(request.continued.uvdir)
+  request.io.close(request.continued.generator)
+  local pyexe = pythondir .. (iswin and "/python.exe" or "/bin/python3")
+  local uvexe = CommonsLang_Python_UvLock.uv_exe(uvdir, slot)
   local out = request.user.out or "dk.uv-lock.jsonc"
   local pyver = request.user["python-version"] or "3.13"
-  -- Build: python dk_uv_lock.py --python-version <v> --out <out> --requirement R ...
-  local args = { generator, "--python-version", pyver, "--out", out }
+  -- python dk_uv_lock.py --python-version V --out - --uv <uvexe> --requirement R ...
+  local args = { generator, "--python-version", pyver, "--out", "-", "--uv", uvexe }
   local reqs = request.user.reqs or {}
   local i, r = 1, reqs[1]
   while r do table.insert(args, "--requirement"); table.insert(args, r); i = i + 1; r = reqs[i] end
-  request.io.close(request.continued.pythondir); request.io.close(request.continued.uvdir)
-  assert(request.ui.spawn {
-    program = pyexe,
-    args = args,
-    -- uv must be discoverable by the generator (it shells out to `uv`).
-    envmods = { "<PATH=" .. uvdir, "+UV_NO_CONFIG=1", "-VIRTUAL_ENV", "-UV_PYTHON" }
-  })
+  local result, msg, kind = request.ui.capture {
+    program = pyexe, args = args, max_output_bytes = 16777211,
+    envmods = { "+UV_NO_CONFIG=1", "-VIRTUAL_ENV", "-UV_PYTHON" }
+  }
+  assert(result, "could not run the uv-lock generator: " .. tostring(kind) .. ": " .. tostring(msg))
+  assert(result.status == "exit" and result.code == 0,
+    "uv-lock generator failed (code " .. tostring(result.code) .. "): " .. tostring(result.stderr))
+  local meta = request.ui.checksum { path = out }
+  local expected = "false"
+  if meta and meta.sha256 then expected = meta.sha256 end
+  local ok, written = request.ui.writefile { path = out, content = result.stdout, expected_sha256 = expected }
+  assert(ok, "could not write dk-uv-lock to `" .. out .. "`: " .. tostring(written))
+  print("wrote dk-uv-lock to " .. tostring(written))
+  return { submit = {} }
 end
 
 return M
