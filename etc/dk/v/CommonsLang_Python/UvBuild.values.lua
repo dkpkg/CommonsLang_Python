@@ -176,7 +176,7 @@ function uirules.Build(command, request, continue_)
     local origins = {}
     local assets = {}
     local files = {
-      helper = "$(get-asset CommonsLang_Python.Apparatus.UvInstallHelper@1.0.0 -p assets/uv-build/dk_uv_install.py -f dk_uv_install.py)"
+      helper = "$(get-asset CommonsLang_Python.Apparatus.UvLockGenerator@1.0.0 -p assets/uv-lock/dk_uv_lock.py -f dk_uv_lock.py)"
     }
     local i = 1
     local key = solution[1]
@@ -214,7 +214,7 @@ function uirules.Build(command, request, continue_)
   request.io.close(request.continued.helper)
   local pyexe = pythondir .. (iswin and "/python.exe" or "/bin/python3")
   local uvexe = CommonsLang_Python_UvBuild.uv_exe(uvdir, slot)
-  local args = { helper, "--uv", uvexe, "--python", pyexe }
+  local args = { helper, "install", "--uv", uvexe, "--python", pyexe }
   -- Collect + close every fetched wheel object.
   local i = 1
   local wkey = "wheel_1"

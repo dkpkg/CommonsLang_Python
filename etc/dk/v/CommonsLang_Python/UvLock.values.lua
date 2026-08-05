@@ -83,8 +83,8 @@ function uirules.Solve(command, request, continue_)
   local uvexe = CommonsLang_Python_UvLock.uv_exe(uvdir, slot)
   local out = request.user.out or "dk.uv-lock.jsonc"
   local pyver = request.user["python-version"] or "3.13"
-  -- python dk_uv_lock.py --python-version V --out - --uv <uvexe> --requirement R ...
-  local args = { generator, "--python-version", pyver, "--out", "-", "--uv", uvexe }
+  -- python dk_uv_lock.py lock --python-version V --out - --uv <uvexe> --requirement R ...
+  local args = { generator, "lock", "--python-version", pyver, "--out", "-", "--uv", uvexe }
   local reqs = request.user.reqs or {}
   local i, r = 1, reqs[1]
   while r do table.insert(args, "--requirement"); table.insert(args, r); i = i + 1; r = reqs[i] end

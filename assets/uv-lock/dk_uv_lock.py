@@ -1,21 +1,30 @@
 #!/usr/bin/env python3
-"""Generate a dk-uv-lock.jsonc from a set of requested PyPI requirements.
+"""dk uv helper for CommonsLang_Python: two subcommands, one checked-in asset.
 
-Run at AUTHOR time by CommonsLang_Python.UvLock (with the bundled CPython + uv on
-PATH). Flow: synthesize a throwaway project, `uv lock` it (universal), then a
-single `uv export --format pylock.toml` (PEP 751) so uv records every package's
-wheel/sdist URLs + hashes. We then select, per dk slot, the wheel whose platform
-tag matches that slot (falling back to a pure-Python `none-any` wheel, then the
-sdist), and reshape into the schema-validated dk-uv-lock.jsonc that UvBuild reads.
+  lock     Resolve a set of PyPI requirements and emit a slot-aware
+           dk-uv-lock.jsonc (run by UvLock.Solve, author time, network).
+  install  Offline-install a set of pinned wheels and prove the assembled
+           environment imports (run by UvBuild.Build, build time, no network).
+
+Both live in ONE asset (Apparatus.UvLockGenerator) so the package publishes a
+single helper module; the heavy logic stays in a real language (tomllib/json),
+unit-testable off-dk.
+
+lock flow (uv 0.12): synthesize a throwaway project, `uv lock` (universal), then
+one `uv export --format pylock.toml` (PEP 751). uv's lockfile is universal and
+`uv export` has no --python-platform and rejects a dotted -o name, so per-slot
+wheel selection is done here from filenames (which come from the wheel URL --
+pylock entries carry none), with a Python-tag filter since a universal lock can
+list wheels for several Python versions.
+
+install flow: `uv pip install --no-index --offline` the exact pinned wheels (which
+dk get-asset already fetched, content-addressed) into a throwaway target, then
+import each requested module.
 
 Usage:
-  python dk_uv_lock.py --python-version 3.13 --out dk.uv-lock.jsonc \\
-      --requirement requests --requirement 'flask>=3'
-  # --out - writes the lock to stdout (the dk rule captures it).
-
-Notes (uv 0.12.1): uv's lockfile is universal; `uv export` has no
-`--python-platform`, and the `-o` name must be `pylock.toml`/`pylock.<name>.toml`
-with no dots. Per-platform wheel selection is therefore done here, from filenames.
+  python dk_uv_lock.py lock --python-version 3.13 --out - --uv <uv> \\
+      --requirement requests
+  python dk_uv_lock.py install --uv <uv> --python <py> --wheel a.whl --import six
 Requires Python 3.11+ (tomllib) -- satisfied by the bundled CPython 3.13.
 """
 import argparse, json, os, re, subprocess, sys, tempfile, tomllib, urllib.parse
@@ -118,14 +127,14 @@ def select_artifact(pkg, slot, pyver):
     return chosen
 
 
-def main():
-    ap = argparse.ArgumentParser()
+def cmd_lock(argv):
+    ap = argparse.ArgumentParser(prog="dk_uv_lock.py lock")
     ap.add_argument("--python-version", default="3.13")
     ap.add_argument("--requirement", action="append", default=[], dest="requirements")
     ap.add_argument("--requirements-file")
     ap.add_argument("--out", required=True)
     ap.add_argument("--uv", default="uv")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     reqs = list(args.requirements)
     if args.requirements_file:
@@ -192,6 +201,52 @@ def main():
             f.write(body)
     print(f"generated dk-uv-lock: {len(packages)} packages, {len(slots)} slots",
           file=sys.stderr)
+
+
+IMPORT_PROBE = (
+    "import importlib, sys\n"
+    "m = importlib.import_module(sys.argv[1])\n"
+    "sys.stdout.write(getattr(m, '__version__', '?'))\n"
+)
+
+
+def cmd_install(argv):
+    ap = argparse.ArgumentParser(prog="dk_uv_lock.py install")
+    ap.add_argument("--uv", required=True)
+    ap.add_argument("--python", required=True)
+    ap.add_argument("--wheel", action="append", default=[], dest="wheels")
+    ap.add_argument("--import", action="append", default=[], dest="imports")
+    args = ap.parse_args(argv)
+    if not args.wheels:
+        sys.exit("no wheels given")
+
+    with tempfile.TemporaryDirectory() as target:
+        # Offline install of the exact pinned wheels: no index, no network. All
+        # progress goes to stderr so stdout stays clean for the JSON summary.
+        cmd = [args.uv, "pip", "install", "--python", args.python,
+               "--target", target, "--no-index", "--offline"] + args.wheels
+        subprocess.run(cmd, check=True, stdout=sys.stderr)
+
+        # Prove each requested module imports from the assembled target.
+        versions = {}
+        env = dict(os.environ)
+        env["PYTHONPATH"] = target
+        for mod in args.imports:
+            out = subprocess.run([args.python, "-c", IMPORT_PROBE, mod],
+                                 check=True, capture_output=True, text=True, env=env)
+            versions[mod] = out.stdout.strip()
+
+    sys.stdout.write(json.dumps({"installed_wheels": len(args.wheels),
+                                 "imports": versions}) + "\n")
+    print("assembled + imported OK", file=sys.stderr)
+
+
+def main():
+    if len(sys.argv) >= 2 and sys.argv[1] == "lock":
+        return cmd_lock(sys.argv[2:])
+    if len(sys.argv) >= 2 and sys.argv[1] == "install":
+        return cmd_install(sys.argv[2:])
+    sys.exit("usage: dk_uv_lock.py {lock|install} ...")
 
 
 if __name__ == "__main__":
