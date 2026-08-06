@@ -4,7 +4,8 @@
 
   $ run-function CommonsBase_Std.Extract.F_TarToZip@0.3.0 -f ${RUNTIME}/ignored.zip modver=CommonsLang_Python.SDK.Zip@3.13.14 tarmodver=CommonsLang_Python.SDK.Bundle@3.13.14 tarassetpath=cpython-3.13.14+20260728-x86_64-apple-darwin-install_only.tar.gz
   \test(pass)
-  \dk.object(abi: "Release.Darwin_arm64", value-id: "o4m2coeg6hjfzbuqdubeatffokqezzmi5whj34hmhd4wmabt6hxva")\;
+  \dk.object(abi: "Release.Darwin_arm64", value-id: "o4m2coeg6hjfzbuqdubeatffokqezzmi5whj34hmhd4wmabt6hxva")
+  \dk.object(abi: "Release.Darwin_x86_64", value-id: "ogpnyobzwts2kx3dvwkfqhwncrsku2mn3blvp2japt3om4djdqgyq")\;
 
 ## Python runner scriptmodule
 
