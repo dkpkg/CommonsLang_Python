@@ -63,7 +63,12 @@ function uirules.Solve(command, request, continue_)
   if continue_ ~= "solve" then
     return { submit = { expressions = {
       directories = {
-        pythondir = "$(get-object CommonsLang_Python.SDK.Zip@3.13.14 -s Release.execution_abi -m ./output.zip -n 1 -d :)",
+        -- The Python interpreter is a target artifact: its native compilation
+        -- (setuptools C extensions) must target the build's target ABI, so it
+        -- is fetched at the target ABI slot and run under the execution host's
+        -- emulator (for example Rosetta on a cross-built macOS host). uv is a
+        -- host tool and stays at the execution ABI.
+        pythondir = "$(get-object CommonsLang_Python.SDK.Zip@3.13.14 -s Release.target_abi -m ./output.zip -n 1 -d :)",
         uvdir     = "$(get-object CommonsLang_Python.Uv.Form@0.12.1 -s Release.execution_abi -d :)"
       },
       files = {
