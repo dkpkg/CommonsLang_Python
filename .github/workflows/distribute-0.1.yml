@@ -45,7 +45,13 @@ jobs:
           pubkey: ${{ secrets.distribute_0_1_pubkey }}
           seckey: ${{ secrets.distribute_0_1_seckey }}
           options: -nosysinc
-          store: release
+          # One-time clean build: the prior releases' package valuestores were
+          # produced before F_TarToZip target-slotting, so they hold the
+          # cross-built Darwin_x86_64 SDK.Zip under the Release.Darwin_arm64
+          # slot. Restoring them would re-contaminate the native arm64 job.
+          # Rebuilding from scratch here re-keys every SDK.Zip under its target
+          # ABI and lays down uncontaminated stores for future releases.
+          store: none
           distscript: ${{ matrix.distscript }}
           execution-abi: ${{ matrix.execution-abi }}
           target-abi: ${{ matrix.target-abi }}
