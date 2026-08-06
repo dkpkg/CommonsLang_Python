@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "grants": [
+    {
+      "values_sha256": "e5999014bf766fab5bce7560bc3c49516d0b2fa38d16343f214bbe40cec6cb69",
+      "capabilities": [ "run", "write" ]
+    },
+    {
+      "values_sha256": "54b4bd22abdfad7030eac9ce8b34baa3a232fc7e7274f86ce9eb379c044e2fd5",
+      "capabilities": [ "run", "write" ]
+    },
+    {
+      "values_sha256": "ff22740d7a014107fba2c4bf02a1faf9090e79ecb9edb33192731dc9d347c115",
+      "capabilities": [ "run" ]
+    },
+    {
+      "values_sha256": "a74f35164459ffd0242befea3fb233ddd624654628de26ef2ff50cc096056c3f",
+      "capabilities": [ "run", "write" ]
+    },
+    {
+      "values_sha256": "07371f7f90637e859d6e7ee904a524b1a5e0df35fe18ff2536f8c090f5262660",
+      "capabilities": [ "run" ]
+    }
+  ]
+}
