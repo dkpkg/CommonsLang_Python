@@ -266,7 +266,8 @@ function rules.F_Build(command, request)
     -- and the installer defaults --python to its own interpreter.
     local imports = request.user["import"] or {}
     local coreutils = "$(get-object CommonsBase_Std.Coreutils@0.6.0 -s ${SLOTNAME.Release.execution_abi} -m ./coreutils.exe -f coreutils.exe -e '*')"
-    local uvbase = "$(get-object CommonsLang_Python.Uv.Form@0.12.1 -s Release.execution_abi -d :)"
+    -- uv is a HOST tool (execution ABI); -e restores the Unix uv executable bit.
+    local uvbase = "$(get-object CommonsLang_Python.Uv.Form@0.12.1 -s Release.execution_abi -d : -e '*/uv')"
     local specs = {
       { "Release.Windows_x86_64", "py/python.exe",  "/uv.exe" },
       { "Release.Linux_x86_64",   "py/bin/python3", "/uv-x86_64-unknown-linux-gnu/uv" },
@@ -293,7 +294,10 @@ function rules.F_Build(command, request)
       forms = { {
         id = request.submit.outputid,
         precommands = { private = {
-          "get-object CommonsLang_Python.SDK.Zip@3.13.14 -s Release.execution_abi -m ./output.zip -n 1 -d py",
+          -- Python is a TARGET artifact (fetched at the target ABI and run
+          -- under the execution host's emulator on a cross-build); the zip
+          -- extraction restores the Unix executable bits with -e.
+          "get-object CommonsLang_Python.SDK.Zip@3.13.14 -s Release.target_abi -m ./output.zip -n 1 -d py -e '*bin/*'",
           "get-asset " .. bundle_id .. " -p " .. base .. " -f wheelhouse/" .. base,
           "get-asset CommonsLang_Python.Apparatus.UvLockGenerator@1.0.0 -p assets/uv-lock/dk_uv_lock.py -f gen.py"
         } },
