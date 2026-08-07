@@ -11,7 +11,7 @@
 
 CommonsLang_Python_UvBuild = {
   id_module = "CommonsLang_Python.UvBuild",
-  id_version = "1.0.0"
+  id_version = "1.1.0"
 }
 
 local M = { id = CommonsLang_Python_UvBuild.id_module .. "@" .. CommonsLang_Python_UvBuild.id_version }
@@ -145,7 +145,7 @@ function CommonsLang_Python_UvBuild.uv_exe(uvdir, slot)
   error("unsupported uv slot: " .. slot)
 end
 
--- `dk0 dialog CommonsLang_Python.UvBuild.Build@1.0.0 lock=dk.uv-lock.jsonc import[]=six`
+-- `dk0 dialog CommonsLang_Python.UvBuild.Build@1.1.0 lock=dk.uv-lock.jsonc import[]=six`
 --
 -- Hermetic offline build/validation. Reads the project lock, fetches each pinned
 -- wheel for the execution slot via dk get-asset (content-addressed; no PyPI at
@@ -251,9 +251,9 @@ end
 -- modules. A function rule, so a dist script run-functions it with `\test(pass)` for
 -- an offline-build regression + Usage entry -- and it needs NO --trust-local-caps
 -- (unlike the Build dialog). The lock itself stays UvLock.Solve (uv lock needs
--- network; forms are hermetic). Windows-only for now; generalize to all slots with
--- slot-gated commands (env -u ${SLOT.Release.<slot>} trick).
---   run-function CommonsLang_Python.UvBuild.F_Build@1.0.0 -d OUT \
+-- network; forms are hermetic). All four slots via slot-gated commands (the
+-- env -u ${SLOT.Release.<slot>} trick).
+--   run-function CommonsLang_Python.UvBuild.F_Build@1.1.0 -d OUT \
 --     modver=CommonsLang_Python.UvBuild.Built@1.0.0 url=<wheel-url> \
 --     hash=sha256:<hex> size=<bytes> import[]=six
 function rules.F_Build(command, request)
