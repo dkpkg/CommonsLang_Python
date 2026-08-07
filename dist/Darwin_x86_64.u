@@ -19,6 +19,11 @@
   \test(pass)
   \dk.object(abi: "Release.Darwin_x86_64", value-id: "os5hv3jqkfn2daj5ta2bzcob4zcrh4qrqxjh57a7q3k2hli5l7m3q")\;
 
+## uv for the execution host (this ABI cross-builds on Darwin_arm64)
+
+  $ run-function CommonsLang_Python.Uv.Files@0.12.1 -d ${RUNTIME}/uv-host slot=Release.Darwin_arm64
+  \test(pass)
+
 <!-- The `\dk.object(abi:..., value-id:...)` lines are recorded by dk0 at the
      first distribute build. -->
 
