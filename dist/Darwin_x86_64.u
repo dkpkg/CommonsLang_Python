@@ -23,6 +23,7 @@
 
   $ run-function CommonsLang_Python.Uv.Files@0.12.1 -d ${RUNTIME}/uv-host slot=Release.Darwin_arm64
   \test(pass)
+  \dk.object(abi: "Release.Darwin_arm64", value-id: "oft5lw7eotoru4yvzfsrody3vxmke5ownuyx75ofbwtgz4zb6vqxq")\;
 
 <!-- The `\dk.object(abi:..., value-id:...)` lines are recorded by dk0 at the
      first distribute build. -->
@@ -37,4 +38,4 @@
 
   $ run-function CommonsLang_Python.UvBuild.F_Build@1.1.0 -d ${RUNTIME}/build modver=CommonsLang_Python.UvBuild.Built@1.0.0 url=https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 size=11050 import[]=six
   \test(pass)
-  \dk.object(abi: "Release.Darwin_arm64", value-id: "ozovn3zcbeqgsgxgfolfxxktqiwkdwqyiclhgvtxptqvmtrbomyaa")\;
+  \dk.object(abi: "Release.Darwin_arm64", value-id: "oqpl5fx7xof32thsdgx5pvxilhyy3wlwlwx65h3gwdjupnefepgrq")\;
