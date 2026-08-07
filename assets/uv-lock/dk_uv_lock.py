@@ -213,17 +213,19 @@ IMPORT_PROBE = (
 def cmd_install(argv):
     ap = argparse.ArgumentParser(prog="dk_uv_lock.py install")
     ap.add_argument("--uv", required=True)
-    ap.add_argument("--python", required=True)
+    ap.add_argument("--python", default=None)  # None -> the running interpreter
     ap.add_argument("--wheel", action="append", default=[], dest="wheels")
     ap.add_argument("--import", action="append", default=[], dest="imports")
+    ap.add_argument("--marker")  # write the JSON summary here (a form's output asset)
     args = ap.parse_args(argv)
     if not args.wheels:
         sys.exit("no wheels given")
+    python = args.python or sys.executable
 
     with tempfile.TemporaryDirectory() as target:
         # Offline install of the exact pinned wheels: no index, no network. All
         # progress goes to stderr so stdout stays clean for the JSON summary.
-        cmd = [args.uv, "pip", "install", "--python", args.python,
+        cmd = [args.uv, "pip", "install", "--python", python,
                "--target", target, "--no-index", "--offline"] + args.wheels
         subprocess.run(cmd, check=True, stdout=sys.stderr)
 
@@ -232,12 +234,16 @@ def cmd_install(argv):
         env = dict(os.environ)
         env["PYTHONPATH"] = target
         for mod in args.imports:
-            out = subprocess.run([args.python, "-c", IMPORT_PROBE, mod],
+            out = subprocess.run([python, "-c", IMPORT_PROBE, mod],
                                  check=True, capture_output=True, text=True, env=env)
             versions[mod] = out.stdout.strip()
 
-    sys.stdout.write(json.dumps({"installed_wheels": len(args.wheels),
-                                 "imports": versions}) + "\n")
+    summary = json.dumps({"installed_wheels": len(args.wheels),
+                          "imports": versions}) + "\n"
+    if args.marker:
+        with open(args.marker, "w", newline="\n") as f:
+            f.write(summary)
+    sys.stdout.write(summary)
     print("assembled + imported OK", file=sys.stderr)
 
 

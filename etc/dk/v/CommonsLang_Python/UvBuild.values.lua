@@ -245,4 +245,78 @@ function uirules.Build(command, request, continue_)
   return { submit = {} }
 end
 
+-- rules.F_Build -- the dist-testable offline build unit. Given ONE pinned wheel
+-- (url/hash/size params) it get-assets the wheel (content-addressed) and, inside a
+-- HERMETIC form, `uv pip install --no-index --offline`s it + imports the requested
+-- modules. A function rule, so a dist script run-functions it with `\test(pass)` for
+-- an offline-build regression + Usage entry -- and it needs NO --trust-local-caps
+-- (unlike the Build dialog). The lock itself stays UvLock.Solve (uv lock needs
+-- network; forms are hermetic). Windows-only for now; generalize to all slots with
+-- slot-gated commands (env -u ${SLOT.Release.<slot>} trick).
+--   run-function CommonsLang_Python.UvBuild.F_Build@1.0.0 -d OUT \
+--     modver=CommonsLang_Python.UvBuild.Built@1.0.0 url=<wheel-url> \
+--     hash=sha256:<hex> size=<bytes> import[]=six
+function rules.F_Build(command, request)
+  local modver = assert(request.user.modver, "please provide modver=MODULE@VERSION")
+  local slots = {
+    "Release.Windows_x86_64", "Release.Linux_x86_64", "Release.Darwin_x86_64", "Release.Darwin_arm64"
+  }
+  if command == "declareoutput" then
+    return { declareoutput = { return_objects = {
+      id = modver, slots = slots, execution_slot = "Release.execution_abi" } } }
+  elseif command == "submit" then
+    local url = assert(request.user.url, "please provide url=WHEEL_URL")
+    local base = CommonsLang_Python_UvBuild.basename_url(url)
+    local origin_base = CommonsLang_Python_UvBuild.dirname_url(url)
+    local sha = request.user.hash or ""
+    if string.sub(sha, 1, 7) == "sha256:" then sha = string.sub(sha, 8) end
+    -- bundle id must be `<modpath>.Whl@<version>` (NOT `<modver>.Whl`, which puts
+    -- `.Whl` after the version and fails semver parsing).
+    local atpos = assert(string.find(modver, "@"), "modver must contain @")
+    local bundle_id = string.sub(modver, 1, atpos - 1) .. ".Whl@" .. string.sub(modver, atpos + 1)
+    -- One slot-gated installer command per ABI: the `env -u ${SLOT.Release.<slot>}`
+    -- trick makes dk0 drop the command whose referenced slot isn't the one being built,
+    -- so only the request slot's line runs. Per-OS python exe + uv subpath; uv is fetched
+    -- inline as an ABSOLUTE path (a relative program name fails subprocess resolution),
+    -- and the installer defaults --python to its own interpreter.
+    local imports = request.user["import"] or {}
+    local coreutils = "$(get-object CommonsBase_Std.Coreutils@0.6.0 -s ${SLOTNAME.Release.execution_abi} -m ./coreutils.exe -f coreutils.exe -e '*')"
+    local uvbase = "$(get-object CommonsLang_Python.Uv.Form@0.12.1 -s Release.execution_abi -d :)"
+    local specs = {
+      { "Release.Windows_x86_64", "py/python.exe",  "/uv.exe" },
+      { "Release.Linux_x86_64",   "py/bin/python3", "/uv-x86_64-unknown-linux-gnu/uv" },
+      { "Release.Darwin_x86_64",  "py/bin/python3", "/uv-x86_64-apple-darwin/uv" },
+      { "Release.Darwin_arm64",   "py/bin/python3", "/uv-aarch64-apple-darwin/uv" }
+    }
+    local commands = {}
+    local si = 1
+    while specs[si] do
+      local sp = specs[si]
+      local c = { coreutils, "env", "-u", "${SLOT." .. sp[1] .. "}", "--",
+        sp[2], "gen.py", "install", "--uv", uvbase .. sp[3],
+        "--wheel", "wheelhouse/" .. base, "--marker", "${SLOT.request}/build-verified.json" }
+      local ii, m = 1, imports[1]
+      while m do table.insert(c, "--import"); table.insert(c, m); ii = ii + 1; m = imports[ii] end
+      table.insert(commands, c)
+      si = si + 1
+    end
+    return { submit = { values = {
+      schema_version = { major = 1, minor = 0 },
+      bundles = { { id = bundle_id,
+        listing = { origins = { { name = "pypi", mirrors = { origin_base } } } },
+        assets = { { path = base, checksum = { sha256 = sha }, size = request.user.size, origin = "pypi" } } } },
+      forms = { {
+        id = request.submit.outputid,
+        precommands = { private = {
+          "get-object CommonsLang_Python.SDK.Zip@3.13.14 -s Release.execution_abi -m ./output.zip -n 1 -d py",
+          "get-asset " .. bundle_id .. " -p " .. base .. " -f wheelhouse/" .. base,
+          "get-asset CommonsLang_Python.Apparatus.UvLockGenerator@1.0.0 -p assets/uv-lock/dk_uv_lock.py -f gen.py"
+        } },
+        function_ = { commands = commands },
+        outputs = { assets = { { slots = slots, paths = { "build-verified.json" } } } }
+      } }
+    } } }
+  end
+end
+
 return M

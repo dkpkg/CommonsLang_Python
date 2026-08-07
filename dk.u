@@ -38,4 +38,4 @@ Python-2.0 AND (Apache-2.0 OR MIT)
 ### CommonsLang_Python.Apparatus@1.0.0
 
   % unified.asset { name="UvLockGenerator", file="assets/uv-lock/dk_uv_lock.py" }
-  \dk.asset(byteSize: "10092", checksum: (sha256: "abeb09117b4b9ba0ec157389387430476852832c983602fb02f3e0a35e23e611"))\;
+  \dk.asset(byteSize: "10366", checksum: (sha256: "22e1797bfdafc8dbf0bd324f40134971d111265251ee3f36a2154be335a4cef4"))\;
