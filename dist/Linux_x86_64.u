@@ -27,14 +27,8 @@
   \test(pass)
   \dk.object(abi: "Release.Linux_x86_64", value-id: "ozvoinoax3girjyu2jsjwycryua64iuiyz64oya2z2kmnqtgj42qa")\;
 
-## UvBuild F_Build offline-install regression (six 1.17.0, hermetic, no trust caps)
-
-  $ run-function CommonsLang_Python.UvBuild.F_Build@1.1.0 -d ${RUNTIME}/build modver=CommonsLang_Python.UvBuild.Built@1.0.0 url=https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 size=11050 import[]=six
-  \test(pass)
-  \dk.object(abi: "Release.Linux_x86_64", value-id: "ocntphajr3a6zbqcgmetwyzptumpujudwrq6dsmaw6ya7kxqht2iq")\;
-
 ## UvBuild (build-time locked-package builder scriptmodule)
 
-  $ run-function CommonsLang_Python.UvBuild.Export@1.1.0 -f ${RUNTIME}/UvBuild.Export.zip
+  $ run-function CommonsLang_Python.UvBuild.Export@1.0.0 -f ${RUNTIME}/UvBuild.Export.zip
   \test(pass)
   \dk.object(abi: "Release.Linux_x86_64", value-id: "o5qtqvespaw5knb7a3lyswn7d54r37tmwmjeszfb63dg5gh6f5ecq")\;
