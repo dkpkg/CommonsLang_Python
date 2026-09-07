@@ -11,7 +11,7 @@
 
   $ run-function CommonsLang_Python.SDK.Export@3.13.14 -f ${RUNTIME}/SDK.Export.zip
   \test(pass)
-  \dk.object(abi: "Release.Darwin_arm64", value-id: "op2qkwnzw332b3ucnmhqdwlv4hjrccefjo5iy7rj2s5pl7diw3uhq")\;
+  \dk.object(abi: "Release.Darwin_arm64", value-id: "ohzjivhfqurv52cr2ckmwav7ht34b53cglnqoclue6opvtulvuavq")\;
 
 ## uv
 
@@ -23,7 +23,7 @@
 
   $ run-function CommonsLang_Python.Uv.Files@0.12.1 -d ${RUNTIME}/uv-host slot=Release.Darwin_arm64
   \test(pass)
-  \dk.object(abi: "Release.Darwin_arm64", value-id: "oft5lw7eotoru4yvzfsrody3vxmke5ownuyx75ofbwtgz4zb6vqxq")\;
+  \dk.object(abi: "Release.Darwin_arm64", value-id: "ochhzss3y7u476mpslgflrd2tdyeblxncv7vpxkxrfnhhfxwx722a")\;
 
 <!-- The `\dk.object(abi:..., value-id:...)` lines are recorded by dk0 at the
      first distribute build. -->
@@ -32,10 +32,10 @@
 
   $ run-function CommonsLang_Python.UvLock.Export@1.0.0 -f ${RUNTIME}/UvLock.Export.zip
   \test(pass)
-  \dk.object(abi: "Release.Darwin_arm64", value-id: "oeh3qipc2oxtzboc4q7roqhle5puq3w7pfavjl2b26ezrlbki5veq")\;
+  \dk.object(abi: "Release.Darwin_arm64", value-id: "odhliakdfpset4zgwd7fdhwil3ahenjdbmja5dvlwtkmlmedwzmeq")\;
 
 ## UvBuild F_Build offline-install regression (six 1.17.0, hermetic, no trust caps)
 
   $ run-function CommonsLang_Python.UvBuild.F_Build@1.1.0 -d ${RUNTIME}/build modver=CommonsLang_Python.UvBuild.Built@1.0.0 url=https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 size=11050 import[]=six
   \test(pass)
-  \dk.object(abi: "Release.Darwin_arm64", value-id: "oqpl5fx7xof32thsdgx5pvxilhyy3wlwlwx65h3gwdjupnefepgrq")\;
+  \dk.object(abi: "Release.Darwin_arm64", value-id: "o32ktx62n67dv7lzzjltzyj7ohpeex62r36dgaricf45ugdt443ua")\;
