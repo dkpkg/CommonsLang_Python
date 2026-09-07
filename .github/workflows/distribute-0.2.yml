@@ -40,7 +40,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Distribute Modules
-        uses: diskuv/dk-distribute@v3
+        uses: diskuv/dk-distribute@v4
         with:
           pubkey: ${{ secrets.distribute_0_2_pubkey }}
           seckey: ${{ secrets.distribute_0_2_seckey }}
@@ -68,9 +68,9 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Combine Modules
-        uses: diskuv/dk-distribute/combine@v3
+        uses: diskuv/dk-distribute/combine@v4
 
       # Attests the distribution, publishes the sigstore bundle for values.json
       # as a release asset, and creates the release.
       - name: Attest and Release
-        uses: diskuv/dk-distribute/attest-release@v3
+        uses: diskuv/dk-distribute/attest-release@v4
