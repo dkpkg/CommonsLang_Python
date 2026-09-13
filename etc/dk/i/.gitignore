@@ -1,0 +1,5 @@
+# Written by dk0. values.unattested.json is a scratch download; do not
+# commit it. The <LIB>.<VER>.values.json import pins and
+# dk-closure-manifest.tsv ARE committed so a fresh clone verifies imports
+# without refetching.
+values.unattested.json
