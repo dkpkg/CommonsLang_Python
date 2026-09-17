@@ -45,7 +45,10 @@ jobs:
           pubkey: ${{ secrets.distribute_0_2_pubkey }}
           seckey: ${{ secrets.distribute_0_2_seckey }}
           options: -nosysinc
-          store: release
+          # store: none for boil wave 20260916234322: the last release predates the 2.4.3.20
+          # tightenings; a store: release restore would revive a shape the engine now refuses.
+          # Precedent: CommonsBase_GNU and CommonsBase_LLVM took store: none on 2026-07-18.
+          store: none
           distscript: ${{ matrix.distscript }}
           execution-abi: ${{ matrix.execution-abi }}
           target-abi: ${{ matrix.target-abi }}
