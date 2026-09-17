@@ -31,10 +31,10 @@ Python-2.0 AND (Apache-2.0 OR MIT)
 
   %% import { type="github-l2", repo="dkpkg/CommonsBase_Std" }
   \dk.import(type: "github-l2", library: "CommonsBase_Std",
-    version: "2.6.20260913085659",
-    checksum: (blake2b-256: "8d601ad9945d5aae4afaa980e922f6d7bcb32a4effd0e3c12d03bf6c3b98839d",
-      sha256: "25224920a4b704b3693afe5343ce05c5cd2c0d9e19ce1641511707fb5af59887",
-      sha1: "f7dab451a2d2860aff9bdff09530b6de464255aa"))\;
+    version: "2.6.20260916234322",
+    checksum: (blake2b-256: "3a079f7fa7b3d8905185e9d6bf3ee7ddc07a467def1557a876084698ff1a4e70",
+      sha256: "eafd48ee3331a4be2fee20055a7d2f88c33b53989c2dcc7f9a6b5ac51349f250",
+      sha1: "4d68e449c8cdd5b3523b273cd3b59e45522a2ff5"))\;
 
 ## Assets
 
