@@ -21,7 +21,7 @@ Studio produces.
 Python-2.0 AND (Apache-2.0 OR MIT)
 
 ## workspace
-  %% actual_version("2.4.3.9")
+  %% actual_version("2.4.3.24")
   'actual_version'
   '2.4.3.9'
 
